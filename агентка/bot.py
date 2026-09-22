@@ -152,12 +152,24 @@ def check_claude_available() -> bool:
     return shutil.which("claude") is not None
 
 
+def ensure_token(cfg: dict) -> str:
+    token = cfg.get("bot_token", "")
+    if token and not token.startswith("ВСТАВ"):
+        return token
+
+    print("Токен бота ще не вказано.")
+    print("Відкрий Telegram, напиши @BotFather → /newbot → скопіюй токен, який він дасть.")
+    while not token or token.startswith("ВСТАВ"):
+        token = input("Встав сюди токен і натисни Enter: ").strip()
+    cfg["bot_token"] = token
+    save_config(cfg)
+    print("Токен збережено в config.json. Наступного разу питати не буду.")
+    return token
+
+
 def main() -> None:
     cfg = load_config()
-    token = cfg.get("bot_token", "")
-    if not token or token.startswith("ВСТАВ"):
-        print("Токен бота не знайдено в config.json. Встав токен від BotFather у поле bot_token і запусти ще раз.")
-        sys.exit(1)
+    token = ensure_token(cfg)
 
     if not check_claude_available():
         print(
